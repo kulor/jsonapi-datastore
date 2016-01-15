@@ -12,6 +12,7 @@
     this._type = type;
     this._attributes = [];
     this._relationships = [];
+    this._links = [];
   }
 
   /**
@@ -28,17 +29,36 @@
         res = { data: { type: this._type } },
         key;
 
+    function obj2Arr(obj) {
+      var arr = [];
+      var objValues = Object.values(obj);
+      Object.keys(obj).forEach(function(key, index) {
+        var objVal = objValues[index];
+        if(objVal) {
+          arr[key] = objVal;
+        }
+      });
+      return arr;
+    }
+
     opts = opts || {};
     opts.attributes = opts.attributes || this._attributes;
     opts.relationships = opts.relationships || this._relationships;
+    opts.links = opts.links || this._links;
 
     if (this.id !== undefined) res.data.id = this.id;
     if (opts.attributes.length !== 0) res.data.attributes = {};
     if (opts.relationships.length !== 0) res.data.relationships = {};
+    if (opts.links.length !== 0) res.data.links = {};
 
     opts.attributes.forEach(function(key) {
       res.data.attributes[key] = self[key];
     });
+
+    var _links = obj2Arr(opts.links);
+    if(Object.keys(_links).length) {
+      res.data.links = _links;
+    }
 
     opts.relationships.forEach(function(key) {
       function relationshipIdentifier(model) {
@@ -183,7 +203,7 @@ class JsonApiDataStore {
           }
         }
         if (rel.links) {
-          model._links = model._links || {};
+          model._links = model._links || [];
           model._links[key] = rel.links;
         }
       }
